@@ -264,7 +264,7 @@ def comparePerformanceFiles(compareList, format='text', sortby='comparison%'):
 				valtostr = '%0.4g' % value
 				if 'e' in valtostr: valtostr = '%f'%value
 				return valtostr
-		sortedkeys = sorted(comparisons.keys(), key=getComparisonKey)
+		sortedkeys = sorted(list(comparisons.keys()), key=getComparisonKey)
 		
 		for k in sortedkeys:
 			out('%s from %s'%(colorFormatter.formatArg(LOG_TEST_PERFORMANCE, k.resultKey), files[-1].keyedResults[k]['testId']))

@@ -33,9 +33,9 @@ from utils.timeutils import formatTimePeriod
 from threading import Lock
 
 import time
-import thread
+import _thread
 import logging
-import Queue
+import queue
 import random
 
 log = logging.getLogger('scheduler')
@@ -72,7 +72,7 @@ class BuildScheduler(object):
 		self.progressFormat = str(len(str(len(init.targets()))))
 		self.progressFormat = '*** %'+self.progressFormat+'d/%'+self.progressFormat+'d '
 		
-		for t in init.targets().values():
+		for t in list(init.targets().values()):
 			try:
 				# this is also a good place to resolve target names into paths
 				t._resolveTargetPath(init)
@@ -89,7 +89,7 @@ class BuildScheduler(object):
 						raise BuildException('Cannot use shared output directory for target: directory targets must always build to a dedicated directory')
 						
 				self.targets[t.path] = BuildTarget(t)
-			except Exception, e:
+			except Exception as e:
 				if not isinstance(e, IOError):
 					log.exception('FAILED to prepare target %s: '%t) # include python stack trace in case it's an xpybuild bug
 				# ensure all exceptions from here are annotated with the location and target name
@@ -223,7 +223,7 @@ class BuildScheduler(object):
 		"""
 		self.index = 0 # identifies thread pool item n out of total=len(self.pending)
 		self.total = len(self.pending) # can increase during this phase
-		pending = Queue.Queue()
+		pending = queue.Queue()
 		for i in self.pending:
 			pending.put_nowait((0, i))
 
@@ -370,7 +370,7 @@ class BuildScheduler(object):
 		self.index = 0 # identifies thread pool item n out of total, protected by lock
 
 		leaves = self.leaves
-		self.leaves = Queue.PriorityQueue()
+		self.leaves = queue.PriorityQueue()
 		for l in leaves:
 			if 'randomizePriorities' in self.options:
 				self.leaves.put_nowait((random.random(), l))

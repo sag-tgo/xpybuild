@@ -126,7 +126,7 @@ class CompilerMakeDependsPathSet(BasePathSet):
 		self.log.info("*** Generating native dependencies for %s" % self.target)
 		try:
 			deplist = options['native.compilers'].dependencies.depends(context=context, src=testsources, options=options, flags=flatten(options['native.cxx.flags']+[context.expandPropertyValues(x).split(' ') for x in self.flags]), includes=flatten(self.includes.resolve(context)+[context.expandPropertyValues(x, expandList=True) for x in options['native.include']]))
-		except BuildException, e:
+		except BuildException as e:
 			if len(testsources)==1 and testsources[0] not in str(e):
 				raise BuildException('Dependency resolution failed for %s: %s'%(testsources[0], e))
 			raise
@@ -162,7 +162,7 @@ class Cpp(BaseTarget):
 		self.makedepend = CompilerMakeDependsPathSet(self, self.source, flags=self.flags, includes=self.includes)
 		BaseTarget.__init__(self, object, [dependencies or [], self.source, self.makedepend])
 		
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 		self.tags('native')
 	
 	def run(self, context):
@@ -204,7 +204,7 @@ class C(BaseTarget):
 		self.flags = flags or []
 		self.makedepend = CompilerMakeDependsPathSet(self, self.source, flags=self.flags, includes=self.includes)
 		BaseTarget.__init__(self, object, [dependencies or [], self.makedepend])
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 		self.tags('native')
 	
 	def run(self, context):
@@ -259,7 +259,7 @@ class Link(BaseTarget):
 		self.shared=shared
 		self.flags = flags or []
 		BaseTarget.__init__(self, bin, PathSet(self.objects, (dependencies or [])))
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 		
 		self.tags('native')
 	
@@ -272,7 +272,7 @@ class Link(BaseTarget):
 				flags=options['native.link.flags']+self.flags, 
 				shared=self.shared,
 				src=self.objects.resolve(context),
-				libs=flatten([map(string.strip, context.expandPropertyValues(x, expandList=True)) for x in self.libs+options['native.libs'] if x]),
+				libs=flatten([list(map(string.strip, context.expandPropertyValues(x, expandList=True))) for x in self.libs+options['native.libs'] if x]),
 				libdirs=flatten(self.libpaths.resolve(context)+[context.expandPropertyValues(x, expandList=True) for x in options['native.libpaths']]))
 
 	def getHashableImplicitInputs(self, context):

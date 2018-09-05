@@ -72,7 +72,7 @@ def mkdir(newdir):
 	#at the same time, it can be a race
 	try:
 		os.makedirs(newdir)
-	except Exception, e:
+	except Exception as e:
 		if os.path.isdir(newdir):
 			pass
 		else:
@@ -116,7 +116,7 @@ def deleteDir(path, allowRetry=True):
 			elif excvalue.errno == errno.ENOTEMPTY: # directory not empty, try again
 				try:
 					log.info("handleRemoveReadonly: ENOTEMPTY dir - has contents: %s", os.listdir(path))
-				except Exception, e:
+				except Exception as e:
 					log.info("handleRemoveReadonly: ENOTEMPTY dir, could not get contents: %s"%e)
 					
 				if allowRetry: # avoid danger of infinite recursion if things are going really wrong
@@ -141,7 +141,7 @@ def deleteDir(path, allowRetry=True):
 		
 	except OSError as e:
 		if os.path.isfile(path):
-			raise OSError, "Unable to delete dir %s as this is a file not a directory" % (path)
+			raise OSError("Unable to delete dir %s as this is a file not a directory" % (path))
 			
 		if allowRetry:
 			log.warn("Failed to delete dir %s (%s), will retry in 10 seconds" %(path, e))
@@ -159,7 +159,7 @@ def deleteDir(path, allowRetry=True):
 			# on windows, try again using a separate process, just in case that 
 			# helps to avoid problems with virus checkers, etc
 			if __isWindows:
-				rmdirresult = os.system(u'rmdir /s /q "%s" 2>1 > /dev/nul'%path)
+				rmdirresult = os.system('rmdir /s /q "%s" 2>1 > /dev/nul'%path)
 				log.info("Directory deletion retry using rmdir returned code %d: %s", rmdirresult, path)
 				
 				# continue to run deleteDir regardless of result, to check it's 
@@ -199,9 +199,9 @@ def deleteFile(path, allowRetry=True):
 			if os.path.lexists(path): 
 				raise
 		
-	except OSError, e:
+	except OSError as e:
 		if os.path.isdir(path):
-			raise OSError, "Unable to delete file %s as this is a directory not a file" % (path)
+			raise OSError("Unable to delete file %s as this is a directory not a file" % (path))
 		
 		if allowRetry:
 			log.debug("Failed to delete file %s on first attempt (%s), will retry in 5 seconds", path, e)
@@ -250,7 +250,7 @@ def parsePropertiesFile(lines, excludeLines=None):
 		key = line[:line.find('=')].strip()
 		value = line[line.find('=')+1:].strip()
 
-		if filter(lambda x: x in key, excludeLines):
+		if [x for x in excludeLines if x in key]:
 			log.debug('Ignoring property line due to exclusion: %s', line)
 			continue
 		
@@ -347,9 +347,9 @@ def toLongPathSafe(path, force=False):
 
 		try:
 			if path.startswith('\\\\'): 
-				path = u'\\\\?\\UNC\\'+path.lstrip('\\') # \\?\UNC\server\share Oh My
+				path = '\\\\?\\UNC\\'+path.lstrip('\\') # \\?\UNC\server\share Oh My
 			else:
-				path = u'\\\\?\\'+path
+				path = '\\\\?\\'+path
 		except Exception:
 			# can throw an exception if path is a bytestring containing non-ascii characters
 			# to be safe, fallback to original string, just hoping it isn't both 
@@ -393,9 +393,9 @@ def normLongPath(path):
 		if __isWindows and path and not path.startswith('\\\\?\\'):
 			try:
 				if path.startswith('\\\\'): 
-					path = u'\\\\?\\UNC\\'+path.lstrip('\\') # \\?\UNC\server\share Oh My
+					path = '\\\\?\\UNC\\'+path.lstrip('\\') # \\?\UNC\server\share Oh My
 				else:
-					path = u'\\\\?\\'+path
+					path = '\\\\?\\'+path
 			except Exception:
 				# can throw an exception if path is a bytestring containing non-ascii characters
 				# to be safe, fallback to original string, just hoping it isn't both 

@@ -154,7 +154,7 @@ class ProcessOutputHandler(object):
 		self._ignoreReturnCode = self.options.get(ProcessOutputHandler.Options.ignoreReturnCode, False)
 		self._regexIgnore = self.options.get(ProcessOutputHandler.Options.regexIgnore, None)
 		if self._regexIgnore: self._regexIgnore = re.compile(self._regexIgnore)
-		assert not kwargs, 'Unexpected keyword argument to ProcessOutputHandler: %s'%kwargs.keys()
+		assert not kwargs, 'Unexpected keyword argument to ProcessOutputHandler: %s'%list(kwargs.keys())
 	
 	@staticmethod
 	def create(name, options=None, **kwargs):
@@ -251,7 +251,7 @@ class ProcessOutputHandler(object):
 		None. 
 		"""
 		
-		assert isinstance(line, unicode) # only accept unicode - force caller to explicitly decode their output before calling this, e.g. l.decode(getStdoutEncoding())
+		assert isinstance(line, str) # only accept unicode - force caller to explicitly decode their output before calling this, e.g. l.decode(getStdoutEncoding())
 		
 		if (isstderr and self._treatStdErrAsErrors) or re.search(r'error[\s]*([A-Z]+\d+)?:', line, flags=re.IGNORECASE): return logging.ERROR
 		if re.search('warning[\s]*([A-Z]+\d+)?:', line, flags=re.IGNORECASE): return logging.WARNING

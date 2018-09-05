@@ -44,7 +44,7 @@ def getBuildInitializationContext():
 	global __buildInitializationContext
 
 	if not __buildInitializationContext: # just for pydoc testing
-		print "<using test initialization context>",
+		print("<using test initialization context>", end=' ')
 		return None
 	assert __buildInitializationContext != 'build phase', 'cannot use this method once the build has started, use context argument instead'
 		
@@ -187,7 +187,7 @@ class BaseContext(object):
 		if not string: return string
 		if hasattr(string, 'resolveToString'):
 			string = string.resolveToString(self)
-		assert isinstance(string, basestring), 'Error in expandPropertyValues: expecting string but argument was of type "%s"'%(string.__class__.__name__)
+		assert isinstance(string, str), 'Error in expandPropertyValues: expecting string but argument was of type "%s"'%(string.__class__.__name__)
 		
 		if '$${' in string:
 			assert '<escaped_xpybuild_placeholder>' not in string
@@ -240,7 +240,7 @@ class BaseContext(object):
 		assert not propertyName.startswith('$'), propertyName
 		assert propertyName.endswith('[]'), propertyName
 		value = self.getPropertyValue(propertyName)
-		return map(lambda s: s.strip(), value.split(','))
+		return [s.strip() for s in value.split(',')]
 	
 	def getProperties(self):
 		"""
@@ -269,7 +269,7 @@ class BaseContext(object):
 		>>> BaseContext({'test':'foo'})._recursiveExpandProperties({('${test}','${test}'):['${test}','${test}',{'${test}1','${test}2'}]})
 		{('foo', 'foo'): ['foo', 'foo', set(['foo1', 'foo2'])]}
 		"""
-		if isinstance(obj, types.StringTypes):
+		if isinstance(obj, (str,)):
 			return self.expandPropertyValues(obj, expandList)
 		elif isinstance(obj, tuple):
 			newobj = []
@@ -325,9 +325,9 @@ class BaseContext(object):
 			if source:
 				for key in source:
 					try:
-						if not key in _definedOptions.keys()+['tmpdir']: raise BuildException("Unknown option %s" % key)
+						if not key in list(_definedOptions.keys())+['tmpdir']: raise BuildException("Unknown option %s" % key)
 						fulloptions[key] = self._recursiveExpandProperties(source[key])
-					except BuildException, e:
+					except BuildException as e:
 						raise BuildException('Failed to resolve option "%s"'%key, location=target.location if target else None, causedBy=True)
 		return fulloptions
 
@@ -452,17 +452,17 @@ class BuildInitializationContext(BaseContext):
 		self._rootDir = os.path.abspath(os.path.dirname(buildFile))
 		try:
 			BuildFileLocation._currentBuildFile = [buildFile]
-			execfile(buildFile, {})
+			exec(compile(open(buildFile).read(), buildFile, 'exec'), {})
 			BuildFileLocation._currentBuildFile = []
-		except BuildException, e:
+		except BuildException as e:
 			log.error('Failed to load build file: %s', e.toSingleLineString(None), extra=e.getLoggerExtraArgDict())
 			log.debug('Failed to load build file: %s', traceback.format_exc())
 			raise
-		except SyntaxError, e:
+		except SyntaxError as e:
 			log.exception('Failed to load build file: ', extra={'xpybuild_filename':e.filename, 'xpybuild_line':e.lineno, 'xpybuild_col':e.offset})
 			# wrap in buildexception to avoid printing same stack trace twice
 			raise BuildException('Failed to load build file', causedBy=True)
-		except Exception, e:
+		except Exception as e:
 			log.exception('Failed to load build file: ')
 			# wrap in buildexception to avoid printing same stack trace twice
 			raise BuildException('Failed to load build file', causedBy=True)
@@ -485,7 +485,7 @@ class BuildInitializationContext(BaseContext):
 		
 		# all the valid ones will have been popped already
 		if self._propertyOverrides:
-			raise BuildException('Cannot specify value for undefined build property/properties: %s'%(', '.join(self._propertyOverrides.keys())))
+			raise BuildException('Cannot specify value for undefined build property/properties: %s'%(', '.join(list(self._propertyOverrides.keys()))))
 	
 	def _initializationCheck(self):
 		if self._initializationCompleted: raise Exception('Cannot invoke this method now that the initialization phase is over')

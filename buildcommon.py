@@ -68,7 +68,7 @@ def include(file):
 	BuildFileLocation._currentBuildFile.append(filepath) # add to stack of files being parsed
 	
 	namespace = {}
-	execfile(filepath, namespace, namespace)
+	exec(compile(open(filepath).read(), filepath, 'exec'), namespace, namespace)
 	
 	del BuildFileLocation._currentBuildFile[-1]
 	
@@ -105,7 +105,7 @@ def normpath(path):
 	See also L{utils.fileutils.normLongPath} and L{utils.fileutils.toLongPathSafe}. 
 
 	"""
-	if isinstance(path, unicode) and not (IS_WINDOWS and path.startswith('\\\\?')):
+	if isinstance(path, str) and not (IS_WINDOWS and path.startswith('\\\\?')):
 		path = path.encode()
 	path = os.path.normpath(path)+(os.path.sep if isDirPath(path) else '')
 	

@@ -55,7 +55,7 @@ def flatten(input):
 	elif hasattr(input, 'resolveToString'): # Composeable, etc - delayed
 		return [input]
 	elif hasattr(input, '__call__'): # a zero-arg lambda
-		return flatten(input())
+		return flatten(eval(input()))
 	else:
 		return [input]
 		
@@ -95,6 +95,6 @@ def getStringList(stringOrListOfStrings):
 		if len(stringOrListOfStrings)==1 and isinstance(stringOrListOfStrings[0], list):
 			return stringOrListOfStrings[0]
 		return stringOrListOfStrings
-	elif isinstance(stringOrListOfStrings, basestring):
+	elif isinstance(stringOrListOfStrings, str):
 		return [stringOrListOfStrings]
 	raise ValueError('The specified value must be a list of strings: "%s"'%(stringOrListOfStrings))

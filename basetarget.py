@@ -72,7 +72,7 @@ class BaseTarget(Composable):
 		self._optionsTargetOverridesUnresolved = {} # for target-specific option overrides. for internal use (by buildcontext), do not use
 		self.__optionsResolved = None # gets assigned during end of initialization phase
 
-		if isinstance(name, basestring):
+		if isinstance(name, str):
 			if '//' in name:
 				raise BuildException('Invalid target name: double slashes are not permitted: %s'%name)
 			if '\\' in name:

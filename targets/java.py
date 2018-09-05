@@ -104,7 +104,7 @@ class SignJars(BaseTarget):
 							if fn.lower().endswith('manifest.mf'):
 								try:
 									manifest_txt = zf.read(zi.filename)
-								except Exception, e:
+								except Exception as e:
 									raise BuildException('Failed reading the manifest file %s with exception:%s' % (fn, e))
 
 								# if we have all manifest text, parse and save each line
@@ -147,7 +147,7 @@ class SignJars(BaseTarget):
 	
 				signjar(os.path.join(self.path, dest), self.keystore, options, alias=self.alias, storepass=self.storepass, 
 					outputHandler=ProcessOutputHandler.create('signjars', treatStdErrAsErrors=False, options=options))
-			except BuildException, e:
+			except BuildException as e:
 				raise BuildException('Error processing %s: %s'%(os.path.basename(dest), e))
 
 class Javac(BaseTarget):
@@ -170,7 +170,7 @@ class Javac(BaseTarget):
 		self.classpath = PathSet(classpath)
 		
 		BaseTarget.__init__(self, output, [self.compile,self.classpath])
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 
 	def run(self, context):
 		# make sure outputdir exists
@@ -189,7 +189,7 @@ class Javac(BaseTarget):
 		# for now, don't bother factoring global jar.manifest.defaults option 
 		# in here (it'll almost never change anyway)
 		return super(Javac, self).getHashableImplicitInputs(context) + sorted([
-			'option: %s = "%s"'%(k,v) for (k,v) in self.options.items() 
+			'option: %s = "%s"'%(k,v) for (k,v) in list(self.options.items()) 
 				if v and (k.startswith('javac.') or k == 'java.home')])
 
 class Jar(BaseTarget):
@@ -232,9 +232,9 @@ class Jar(BaseTarget):
 		self.package = PathSet(package)
 		self.manifest = manifest
 		BaseTarget.__init__(self, jar, [self.compile,self.classpath,self.package, 
-			manifest if isinstance(manifest, basestring) else None])
+			manifest if isinstance(manifest, str) else None])
 			
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 		self.preserveManifestFormatting = preserveManifestFormatting
 
 	def run(self, context):
@@ -257,7 +257,7 @@ class Jar(BaseTarget):
 
 		manifest = os.path.join(self.workDir, "MANIFEST.MF") # manifest file
 	
-		if isinstance(self.manifest, basestring):
+		if isinstance(self.manifest, str):
 			manifest = context.getFullPath(self.manifest, self.baseDir)
 		elif self.manifest == None:
 			manifest = None
@@ -314,7 +314,7 @@ class Jar(BaseTarget):
 			'manifest = '+context.expandPropertyValues(str(self.manifest)),
 			'classpath = '+context.expandPropertyValues(str(self.classpath)), # because classpath destinations affect manifest
 			]+(['preserveManifestFormatting = true'] if self.preserveManifestFormatting else [])\
-			+sorted(['option: %s = "%s"'%(k,v) for (k,v) in self.options.items() 
+			+sorted(['option: %s = "%s"'%(k,v) for (k,v) in list(self.options.items()) 
 				if v and (k.startswith('javac.') or k.startswith('jar.') or k == 'java.home')])
 
 class Javadoc(BaseTarget):
@@ -333,7 +333,7 @@ class Javadoc(BaseTarget):
 		self.sources = PathSet(source)
 		self.classpath = PathSet(classpath)
 		BaseTarget.__init__(self, destdir, [self.sources, self.classpath])
-		for k,v in (options or {}).items(): self.option(k, v)
+		for k,v in list((options or {}).items()): self.option(k, v)
 
 	def run(self, context):
 		options = self.options
@@ -346,6 +346,6 @@ class Javadoc(BaseTarget):
 		# for now, don't bother factoring global jar.manifest.defaults option 
 		# in here (it'll almost never change anyway)
 		return super(Javadoc, self).getHashableImplicitInputs(context) + \
-			sorted(['option: %s = "%s"'%(k,v) for (k,v) in self.options.items() 
+			sorted(['option: %s = "%s"'%(k,v) for (k,v) in list(self.options.items()) 
 				if k and k.startswith('javadoc.')])
 				

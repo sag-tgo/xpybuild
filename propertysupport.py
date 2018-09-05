@@ -207,14 +207,14 @@ def definePropertiesFromFile(propertiesFile, prefix=None, excludeLines=None, con
 	keys e.g. "FOO<condition>=bar" where lines with no condition in this list 
 	are ignored. Conditions are typically lowercase. 
 	"""
-	if conditions: assert not isinstance(conditions,basestring), 'conditions parameter must be a list'
+	if conditions: assert not isinstance(conditions,str), 'conditions parameter must be a list'
 	__log.info('Defining properties from file: %s', propertiesFile)
 	context = getBuildInitializationContext()
 	
 	propertiesFile = context.getFullPath(propertiesFile, BuildFileLocation(raiseOnError=True).buildDir)
 	try:
 		f = open(propertiesFile, 'r') 
-	except Exception, e:
+	except Exception as e:
 		raise BuildException('Failed to open properties file "%s"'%(propertiesFile), causedBy=True)
 	missingKeysFound = set()
 	try:
@@ -247,7 +247,7 @@ def definePropertiesFromFile(propertiesFile, prefix=None, excludeLines=None, con
 			try:
 				value = context.expandPropertyValues(value)
 				context.defineProperty(key, value, debug=True)
-			except BuildException, e:
+			except BuildException as e:
 				raise BuildException('Error processing properties file %s'%formatFileLocation(propertiesFile, lineNo), causedBy=True)
 	finally:
 		f.close()
@@ -257,7 +257,7 @@ def definePropertiesFromFile(propertiesFile, prefix=None, excludeLines=None, con
 	for k in missingKeysFound:
 		try:
 			context.getPropertyValue(k)
-		except BuildException, e:
+		except BuildException as e:
 			raise BuildException('Error processing properties file %s: no property key found for "%s" matched any of the conditions: %s'%(
 				propertiesFile, k, conditions), causedBy=False)
 

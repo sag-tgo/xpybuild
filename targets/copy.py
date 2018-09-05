@@ -115,7 +115,7 @@ class Copy(BaseTarget):
 						self._copyFile(context, srcAbs, dest)
 						if self.mode:
 							os.chmod(dest, self.mode)
-					except Exception, e:
+					except Exception as e:
 						raise BuildException('Error copying from "%s" to "%s"'%(srcAbs, dest), causedBy=True)
 						
 					copied += 1
