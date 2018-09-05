@@ -218,12 +218,15 @@ class FilteredCopy(Copy):
 					x = m.getHeader(context)
 					if x: 
 						self.__unusedMappers.discard(m)
-						d.write(x)
+						d.write(x.encode('UTF-8'))
 				
 				for l in s:
 					for m in self.mappers:
 						prev = l
-						l = m.mapLine(context, l)
+						try:
+							l = m.mapLine(context, l.decode('UTF-8')).encode('UTF-8')
+						except:
+							pass # probably shouldn't do this
 						if prev != l:
 							self.__unusedMappers.discard(m)
 						if None == l:
@@ -235,7 +238,7 @@ class FilteredCopy(Copy):
 					x = m.getFooter(context)
 					if x: 
 						self.__unusedMappers.discard(m)
-						d.write(x)
+						d.write(x.encode('UTF-8'))
 		shutil.copymode(src, dest)
 		assert os.path.exists(dest)
 

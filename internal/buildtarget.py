@@ -54,6 +54,7 @@ class BuildTarget(object):
 		self.__implicitInputs = None
 
 	def __hash__ (self): return hash(self.target) # delegate
+	def __lt__(self, other): return self.target.path < other.target.path
 	
 	def __str__(self): return '%s'%self.target
 	def __repr__(self): return 'BuildTarget.%s'%str(self)
@@ -208,7 +209,7 @@ class BuildTarget(object):
 					log.info('Up-to-date check: %s must be rebuilt because implicit inputs/stamp file does not exist: "%s"', self.name, self._implicitInputsFile)
 					return False
 				with open(toLongPathSafe(self._implicitInputsFile), 'rb') as f:
-					latestImplicitInputs = f.read().split(os.linesep)
+					latestImplicitInputs = f.read().decode('UTF-8').split(os.linesep)
 					if latestImplicitInputs != implicitInputs:
 						thediff = list(difflib.unified_diff(latestImplicitInputs, implicitInputs,
 							fromfile='inputs for previous build of the target (%d lines)'%len(implicitInputs),
@@ -268,7 +269,7 @@ class BuildTarget(object):
 			log.debug('writing implicitInputsFile: %s', self._implicitInputsFile)
 			mkdir(os.path.dirname(self._implicitInputsFile))
 			with openForWrite(toLongPathSafe(self._implicitInputsFile), 'wb') as f:
-				f.write(os.linesep.join(implicitInputs))
+				f.write(os.linesep.join(implicitInputs).encode('UTF-8'))
 		
 	def clean(self, context):
 		"""

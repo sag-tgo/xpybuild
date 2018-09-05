@@ -106,19 +106,24 @@ class CompilerMakeDependsPathSet(BasePathSet):
 			deplist = []
 			with open(dfile) as f:
 				lines = f.readlines()
-				header = lines[0].strip()
-				lines = lines[1:]
-				for d in lines:
-					d = d.strip()
-					if context._isValidTarget(d) or exists(normLongPath(d)):
-						deplist.append(d)
-					else:
+				if 0 == len(lines):
+					needsRebuild = True
+					self.log.warn("Rebuilding dependencies for %s because cached dependency file is empty" % (self.target))
+				else:
+					header = lines[0].strip()
+					if header != str(self):
+						self.log.info("Rebuilding dependencies for %s because target options have changed (%s != %s)" % (self.target, header, str(self)))
 						needsRebuild = True
-						self.log.warn("Rebuilding dependencies for %s because dependency %s is missing" % (self.target, d))
-						break
-			if header != str(self):
-				self.log.info("Rebuilding dependencies for %s because target options have changed (%s != %s)" % (self.target, header, str(self)))
-			elif not needsRebuild:
+					lines = lines[1:]
+					for d in lines:
+						d = d.strip()
+						if context._isValidTarget(d) or exists(normLongPath(d)):
+							deplist.append(d)
+						else:
+							needsRebuild = True
+							self.log.warn("Rebuilding dependencies for %s because dependency %s is missing" % (self.target, d))
+							break
+			if not needsRebuild:
 				return deplist
 
 		# generate them again
@@ -134,9 +139,9 @@ class CompilerMakeDependsPathSet(BasePathSet):
 		mkdir(os.path.dirname(dfile))
 		with openForWrite(dfile, 'wb') as f:
 			assert not os.linesep in str(self)
-			f.write(str(self)+os.linesep)
+			f.write((str(self)+os.linesep).encode('UTF-8'))
 			for d in deplist:
-				f.write(d.encode('UTF-8')+os.linesep)
+				f.write((d+os.linesep).encode('UTF-8'))
 		if time.time()-startt > 5: # this should usually be pretty quick, so may indicate a real build file mistake
 			self.log.warn('Dependency generation took a long time: %0.1f s to evaluate %s', time.time()-startt, self)
 
@@ -272,7 +277,7 @@ class Link(BaseTarget):
 				flags=options['native.link.flags']+self.flags, 
 				shared=self.shared,
 				src=self.objects.resolve(context),
-				libs=flatten([list(map(string.strip, context.expandPropertyValues(x, expandList=True))) for x in self.libs+options['native.libs'] if x]),
+				libs=flatten([list(map(str.strip, context.expandPropertyValues(x, expandList=True))) for x in self.libs+options['native.libs'] if x]),
 				libdirs=flatten(self.libpaths.resolve(context)+[context.expandPropertyValues(x, expandList=True) for x in options['native.libpaths']]))
 
 	def getHashableImplicitInputs(self, context):

@@ -72,7 +72,7 @@ def create_manifest(path, properties, options):
 	# write out the file
 	if path:
 		with openForWrite(path, 'wb') as f:
-			f.writelines(lines)
+			f.writelines([x.encode('UTF-8') for x in lines])
 	else: # this case for docstrings tests
 		return "".join(lines)
 
@@ -121,7 +121,7 @@ class JavacProcessOutputHandler(ProcessOutputHandler):
 		assert self._logbasename # could make this optional, but for now don't
 		
 		if self._contents:
-			with open(self._logbasename+'.out', 'w') as fo:
+			with open(self._logbasename+'.out', 'wb') as fo:
 				fo.write(self._contents.encode('UTF-8'))
 		
 		errs = []
@@ -276,7 +276,7 @@ def javac(output, inputs, classpath, options, logbasename, targetname):
 	with openForWrite(argsfile, 'wb') as f:
 		for a in args:
 			a = '"%s"'%a.replace('\\','\\\\')
-			print(a, file=f)
+			f.write((a+os.linesep).encode('UTF-8'))
 
 	success=False
 	try:
@@ -426,7 +426,7 @@ def javadoc(path, sources, classpath, options, outputHandler):
 	mkdir(options['tmpdir'])
 	inputlistfile = os.path.join(options['tmpdir'], "javadoc.inputs")
 	with openForWrite(inputlistfile, 'wb') as f:
-		f.writelines(['"'+x.replace('\\','\\\\')+'"'+os.linesep for x in sources])
+		f.writelines([('"'+x.replace('\\','\\\\')+'"'+os.linesep).encode('UTF-8') for x in sources])
 
 	# build up arguments
 	args = [binary]

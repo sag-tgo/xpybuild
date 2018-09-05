@@ -55,7 +55,7 @@ def flatten(input):
 	elif hasattr(input, 'resolveToString'): # Composeable, etc - delayed
 		return [input]
 	elif hasattr(input, '__call__'): # a zero-arg lambda
-		return flatten(eval(input()))
+		return flatten(input())
 	else:
 		return [input]
 		

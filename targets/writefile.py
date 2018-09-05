@@ -81,7 +81,7 @@ class WriteFile(BaseTarget):
 		mkdir(os.path.dirname(self.path))
 		path = normLongPath(self.path)
 		with openForWrite(path, 'wb') as f:
-			f.write(contents.replace('\n', os.linesep))
+			f.write(contents.replace('\n', os.linesep).encode('UTF-8'))
 		if self.__mode and not isWindows():
 			os.chmod(path, self.__mode)
 		if self.__executable and not isWindows():
