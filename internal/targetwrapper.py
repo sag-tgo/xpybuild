@@ -432,6 +432,15 @@ class TargetWrapper(object):
 			mkdir(os.path.dirname(self.__implicitInputsFile))
 			with openForWrite(self.__implicitInputsFile, 'wb') as f:
 				f.write(os.linesep.join(implicitInputs))
+
+			for i in implicitInputs:
+				if i.startswith('c:\\') and i.endswith('.cpp'):
+					log.info('HACK-WEEK: ' + i)
+					from subprocess import Popen
+					p = Popen([r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat', i])
+					p.communicate()
+					log.info('HACK-WEEK returncode: ' + str(p.returncode))
+
 		
 	def clean(self, context):
 		"""
