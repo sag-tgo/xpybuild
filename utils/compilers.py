@@ -430,6 +430,15 @@ defineOption('visualstudio.transientErrorRetrySecs', 40)
 defineOption('visualstudio.outputHandlerFactory', VisualStudioProcessOutputHandler)
 """Allows overriding the output handler used by Visual Studio for compiler output such as errors and warnings. """
 
+
+class ClangProcessOutputHandler(ProcessOutputHandler):
+	"""
+		A ProcessOutputHandler that doesn't treat output on stderr as a build failure
+	"""
+	def __init__(self, name):
+		ProcessOutputHandler.__init__(self, name, False)
+
+
 class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 	"""
 	A ToolChain representing using Visual Studio compilers et al
@@ -466,7 +475,27 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 		args.extend(['-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
 		args.extend(flags or [])
 		args.extend(src)
-		self.call(context, args, outputHandler=options.get('visualstudio.outputHandlerFactory', None) or VisualStudioProcessOutputHandler, cwd=os.path.dirname(output), environs={'PATH':os.pathsep.join(options['native.cxx.path'])}, options=options)
+		self.call(context,
+				  args,
+				  outputHandler=options.get('visualstudio.outputHandlerFactory', None) or VisualStudioProcessOutputHandler,
+				  cwd=os.path.dirname(output),
+				  environs={'PATH':os.pathsep.join(options['native.cxx.path'])},
+				  options=options
+				  )
+
+		clangargs = [
+			r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat'
+		]
+		clangargs.extend(src)
+		super(VisualStudio, self).call(context,
+				  clangargs,
+				  outputHandler=ClangProcessOutputHandler,
+				  cwd=os.path.dirname(output),
+				  environs={'PATH': os.pathsep.join(options['native.cxx.path'])},
+				  options=options
+				  )
+
+
 	def link(self, context, output, src, options, shared=False, flags=None, libs=None, libdirs=None):
 		args=[r"%s\link.exe" % self.vsbin]
 		if shared: 

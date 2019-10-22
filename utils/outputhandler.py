@@ -33,7 +33,7 @@ class ProcessOutputHandler(object):
 	from a process, accumulating error and warnings, and converting into 
 	appropriate log statements and a summary exception if it failed. 
 	
-	It is expected that subclasses would be created to abtract away handling of 
+	It is expected that subclasses would be created to abstract away handling of
 	output from different particular types of process (e.g. Java compilation, 
 	gmake, msbuild, etc).
 	
