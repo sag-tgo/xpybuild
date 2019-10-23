@@ -43,7 +43,9 @@
 #       running them easier from the command line
 #
 
-import sys, os, getopt, time, traceback, logging, multiprocessing, threading, re
+import sys, os, multiprocessing
+
+from utils.buildstats import Stats
 
 if float(sys.version[:3]) < 2.7: raise Exception('xpybuild.py requires at least Python 2.7 - unsupported python version %s'%sys.version[:3])
 
@@ -58,11 +60,9 @@ if os.getenv('XPYBUILD_IMPORTS'):
 	for i in os.getenv('XPYBUILD_IMPORTS').split(','):
 		importlib.import_module(i)
 
-from buildcommon import *
 from buildcommon import _XPYBUILD_VERSION
 from buildcontext import *
 from utils.fileutils import mkdir, deleteDir
-from propertysupport import defineOption, parsePropertiesFile
 from internal.stacktrace import listen_for_stack_signal
 from buildexceptions import BuildException
 from utils.consoleformatter import _registeredConsoleFormatters, publishArtifact
@@ -74,7 +74,7 @@ import utils.make # needed to create the entry in _handlers
 import utils.progress # needed to create the entry in _handlers
 
 import utils.platformutils 
-from internal.outputbuffering import OutputBufferingStreamWrapper, outputBufferingManager
+from internal.outputbuffering import OutputBufferingStreamWrapper
 
 log = logging.getLogger('xpybuild')
 
@@ -573,6 +573,7 @@ def main(args):
 					log.critical('*** XPYBUILD FAILED: %d error(s) (aborted with %d targets outstanding): \n   %s', len(errorsList), totalTargets-targetsCompleted, '\n   '.join(errorsList))
 					return 4
 				else:
+					log.info('Processed %s cpp files'%str(Stats.cppcount))
 					# using *** here means we get a valid final progress message
 					log.critical('*** XPYBUILD SUCCEEDED: %s built (%d up-to-date)', targetsBuilt if targetsBuilt else '<NO TARGETS>', (totalTargets-targetsBuilt))
 					return 0

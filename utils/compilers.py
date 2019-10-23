@@ -17,13 +17,16 @@
 # $Id: compilers.py 301527 2017-02-06 15:31:43Z matj $
 #
 
-import os, re, logging, time, traceback
+import re
+import time
 
 from buildcommon import *
 from buildexceptions import BuildException
+from utils.buildstats import Stats
 from utils.process import call
 from utils.outputhandler import ProcessOutputHandler
 from propertysupport import defineOption
+
 
 class Process(object):
 	"""
@@ -439,7 +442,6 @@ class ClangProcessOutputHandler(ProcessOutputHandler):
 	def __init__(self, name):
 		ProcessOutputHandler.__init__(self, name, False)
 
-
 class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 	"""
 	A ToolChain representing using Visual Studio compilers et al
@@ -495,6 +497,7 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 				  environs={'PATH': os.pathsep.join(options['native.cxx.path'])},
 				  options=options
 				  )
+		Stats.cppcount += 1
 
 
 	def link(self, context, output, src, options, shared=False, flags=None, libs=None, libdirs=None):
