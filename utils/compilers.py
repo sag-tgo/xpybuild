@@ -490,6 +490,11 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 			r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat'
 		]
 		clangargs.extend(src)
+		clangargs.extend([r'--'])
+		clangargs.extend(['-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
+		# HACK: /MD needs to expand to: -D_MT -D_DLL
+		clangargs.extend([x.replace('/D', '-D').replace('/MD', '-D_MT -D_DLL') for x in (flags or [])])
+
 		super(VisualStudio, self).call(context,
 				  clangargs,
 				  outputHandler=ClangProcessOutputHandler,
