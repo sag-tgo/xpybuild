@@ -489,11 +489,18 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 		clangargs = [
 			r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat'
 		]
-		clangargs.extend(src)
-		clangargs.extend([r'--'])
-		clangargs.extend(['-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
+		# We should really remove paths with spaces as they don't work and have been placed in a hard-coded form in compile_flags.txt
+		clangargs.extend(['--extra-arg=-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
+		clangargs.extend([x.replace('/D', '--extra-arg=-D') for x in (flags or []) if x.startswith('/D')])
 		# HACK: /MD needs to expand to: -D_MT -D_DLL
-		clangargs.extend([x.replace('/D', '-D').replace('/MD', '-D_MT -D_DLL') for x in (flags or [])])
+		if '/MD' in (flags or []):
+			clangargs.extend(['--extra-arg=-D_MT'])
+			clangargs.extend(['--extra-arg=-D_DLL'])
+
+		clangargs.extend(src)
+
+		# HACK: We should really be passing this to clang-cl.exe to get the correct set of arguments for clang-tidy.exe
+		#       and then post process the returned results.
 
 		super(VisualStudio, self).call(context,
 				  clangargs,
