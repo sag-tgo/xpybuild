@@ -486,31 +486,36 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 				  options=options
 				  )
 
-		clangargs = [
-			r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat'
-		]
-		# We should really remove paths with spaces as they don't work and have been placed in a hard-coded form in compile_flags.txt
-		clangargs.extend(['--extra-arg=-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
-		clangargs.extend([x.replace('/D', '--extra-arg=-D') for x in (flags or []) if x.startswith('/D')])
-		clangargs.extend([x.replace('-D', '--extra-arg=-D') for x in (flags or []) if x.startswith('-D')])
-		# HACK: /MD needs to expand to: -D_MT -D_DLL
-		if '/MD' in (flags or []):
-			clangargs.extend(['--extra-arg=-D_MT'])
-			clangargs.extend(['--extra-arg=-D_DLL'])
+		# BIG HACK: Only run clang-tidy on the C++ files as it is having trouble with the C files.
+		if not src[0].endswith('.c'):
+			clangargs = [
+				r'C:/dev/cpp-build-improvements/apama-src/clang-tidy.bat'
+			]
 
-		clangargs.extend(src)
+			# HACK: We should really be passing this to clang-cl.exe to get the correct set of arguments for clang-tidy.exe
+			#       and then post process the returned results. Instead we just butcher the cl.exe arguments and pass them
+			#       straight across with a few transformations to get it mostly working.
 
-		# HACK: We should really be passing this to clang-cl.exe to get the correct set of arguments for clang-tidy.exe
-		#       and then post process the returned results.
+			# MASSIVE HACK: We should really remove paths with spaces as they don't work and have been placed in a hard-coded form in compile_flags.txt
+			clangargs.extend(['--extra-arg=-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
+			clangargs.extend([x.replace('/D', '--extra-arg=-D') for x in (flags or []) if x.startswith('/D')])
+			clangargs.extend([x.replace('-D', '--extra-arg=-D') for x in (flags or []) if x.startswith('-D')])
+			# MEDIUM HACK: /MD needs to expand to: -D_MT -D_DLL
+			if '/MD' in (flags or []):
+				clangargs.extend(['--extra-arg=-D_MT'])
+				clangargs.extend(['--extra-arg=-D_DLL'])
 
-		super(VisualStudio, self).call(context,
-				  clangargs,
-				  outputHandler=ClangProcessOutputHandler,
-				  cwd=os.path.dirname(output),
-				  environs={'PATH': os.pathsep.join(options['native.cxx.path'])},
-				  options=options
-				  )
-		Stats.cppcount += 1
+			# The CPP file must be the last item to be added.
+			clangargs.extend(src)
+
+			super(VisualStudio, self).call(context,
+					  clangargs,
+					  outputHandler=ClangProcessOutputHandler,
+					  cwd=os.path.dirname(output),
+					  environs={'PATH': os.pathsep.join(options['native.cxx.path'])},
+					  options=options
+					  )
+			Stats.cppcount += 1
 
 
 	def link(self, context, output, src, options, shared=False, flags=None, libs=None, libdirs=None):
