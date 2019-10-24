@@ -492,6 +492,7 @@ class VisualStudio(Compiler, Linker, Depends, Archiver, ToolChain):
 		# We should really remove paths with spaces as they don't work and have been placed in a hard-coded form in compile_flags.txt
 		clangargs.extend(['--extra-arg=-I%s' % _checkDirExists(x.replace('/','\\'), 'Cannot find include directory ``%s"') for x in (includes or [])])
 		clangargs.extend([x.replace('/D', '--extra-arg=-D') for x in (flags or []) if x.startswith('/D')])
+		clangargs.extend([x.replace('-D', '--extra-arg=-D') for x in (flags or []) if x.startswith('-D')])
 		# HACK: /MD needs to expand to: -D_MT -D_DLL
 		if '/MD' in (flags or []):
 			clangargs.extend(['--extra-arg=-D_MT'])
